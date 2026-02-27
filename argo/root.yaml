@@ -10,7 +10,7 @@ spec:
     path: argo/apps
     directory:
       recurse: true
-    project: default
+  project: default
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
