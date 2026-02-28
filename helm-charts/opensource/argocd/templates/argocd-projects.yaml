@@ -1,0 +1,36 @@
+{{- $top := . -}}
+{{ range $project := .Values.projects -}}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ $project.name }}
+  namespace: {{ include "custom-argocd.namespace" $top }}
+  labels:
+    app.kubernetes.io/name: {{ include "custom-argocd.name" $top }}
+    helm.sh/chart: {{ include "custom-argocd.chart" $top }}
+    app.kubernetes.io/instance: {{ $top.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $top.Release.Service }}
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: {{ $project.name }}
+    server: '*'
+  {{ range $namespace := $project.destinationNamespaces -}}
+  - namespace: {{ $namespace }}
+    server: '*'
+  {{ end -}}
+  sourceRepos:
+  - '*'
+  sourceNamespaces:
+  - {{ $project.name }}
+  {{- with $project.sourceNamespaces }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+  syncWindows:
+  {{- with $project.syncWindows }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{ end }}

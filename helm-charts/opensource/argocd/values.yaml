@@ -1,0 +1,31 @@
+argo-cd:
+  configs:
+    params:
+      application.namespaces: 'dev, prod, platform, default'
+      applicationsetcontroller.namespaces: 'dev, prod, platform, default'
+      applicationsetcontroller.allowed.scm.providers: "https://github.com/"
+  
+  applicationSet:
+    allowAnyNamespace: true
+
+projects:
+  - name: platform
+    destinationNamespaces: [argocd, platform, dev, prod, default, kube-system]
+  - name: dev
+    destinationNamespaces: [dev]
+  - name: prod
+    destinationNamespaces: [prod]
+
+  # - name: core
+  #   destinationNamespaces: [argocd]
+  # - name: test
+  # - name: prod
+  #   sourceNamespaces:
+  #   - prod
+  #   syncWindows:
+  #   - kind: 'allow'
+  #     duration: 0h
+  #     manualSync: true
+  #     schedule: '0 22 * * 4'
+  #     timeZone: 'Europe/Amsterdam'
+  #     applications: ['*']

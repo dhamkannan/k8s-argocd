@@ -1,0 +1,3 @@
+v1.0.0
+- Initial release of the Argocd Helm chart
+- Argocd Chart version 9.4.5 (https://artifacthub.io/packages/helm/argo/argo-cd/9.4.5)
