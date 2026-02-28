@@ -19,10 +19,10 @@ spec:
       sources:
       - ref: values
         repoURL: https://github.com/dhamkannan/k8s-argocd.git
-        targetRevision: feature/v1
+        targetRevision: v1
       - path: helm-charts/inhouse/platform-core
         repoURL: https://github.com/dhamkannan/k8s-argocd.git
-        targetRevision: feature/v1
+        targetRevision: v1
         helm:
           valueFiles:
             - values.yaml
