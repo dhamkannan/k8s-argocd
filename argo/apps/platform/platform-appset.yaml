@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: platform
-  namespace: platform
+  namespace: argocd
 spec:
   generators:
   # Environments
@@ -15,12 +15,12 @@ spec:
     metadata:
       name: '{{namespace}}-platform'
     spec:
-      project: platform
+      project: default
       sources:
-      - ref: values # Path to Helm chart
+      - ref: values
         repoURL: https://github.com/dhamkannan/k8s-argocd.git
         targetRevision: feature/v1
-      - path: helm-charts/inhouse/platform-core  # Path to Helm chart
+      - path: helm-charts/inhouse/platform-core
         repoURL: https://github.com/dhamkannan/k8s-argocd.git
         targetRevision: feature/v1
         helm:
