@@ -1,0 +1,89 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+
+name: local
+
+nodes:
+- role: control-plane
+  image: kindest/node:v1.32.2
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      name: control-plane-1
+      kubeletExtraArgs:
+        node-labels: "topology.kubernetes.io/region=local-region,topology.kubernetes.io/zone=zone-a,node-role=control-plane"
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        profiling: "false"
+        request-timeout: "300s"
+        event-ttl: "4h"
+        enable-admission-plugins: "NodeRestriction"
+    controllerManager:
+      extraArgs:
+        profiling: "false"
+        node-monitor-grace-period: "20s"
+    scheduler:
+      extraArgs:
+        profiling: "false"
+
+- role: control-plane
+  image: kindest/node:v1.32.2
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: control-plane-2
+      kubeletExtraArgs:
+        node-labels: "topology.kubernetes.io/region=local-region,topology.kubernetes.io/zone=zone-b,node-role=control-plane"
+
+# node-group=general: regular application workloads
+- role: worker
+  image: kindest/node:v1.32.2
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: worker-1
+      kubeletExtraArgs:
+        node-labels: "topology.kubernetes.io/region=local-region,topology.kubernetes.io/zone=zone-a,node-role=worker,node-group=general,node.kubernetes.io/instance-type=standard"
+- role: worker
+  image: kindest/node:v1.32.2
+  kubeadmConfigPatches:
+    - |
+      kind: JoinConfiguration
+      nodeRegistration:
+        name: worker-2
+        kubeletExtraArgs:
+          node-labels: "topology.kubernetes.io/region=local-region,topology.kubernetes.io/zone=zone-b,node-role=worker,node-group=general,node.kubernetes.io/instance-type=standard"
+
+# node-group=infra: infrastructure workloads (ingress, monitoring, logging).
+# Tainted so only pods that explicitly tolerate it are scheduled here.
+- role: worker
+  image: kindest/node:v1.32.2
+  extraPortMappings:
+    - containerPort: 80
+      hostPort: 8080  # unprivileged port — rootless Podman cannot bind <1024
+      protocol: TCP
+    - containerPort: 443
+      hostPort: 8443  # unprivileged port — rootless Podman cannot bind <1024
+      protocol: TCP
+  kubeadmConfigPatches:
+    - |
+      kind: JoinConfiguration
+      nodeRegistration:
+        name: worker-3
+        taints:
+          - key: "node-group"
+            value: "infra"
+            effect: "NoSchedule"
+        kubeletExtraArgs:
+          node-labels: "topology.kubernetes.io/region=local-region,topology.kubernetes.io/zone=zone-b,node-role=worker,node-group=infra,node.kubernetes.io/instance-type=standard"
+
+networking:
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"
+  # ipvs preferred at scale but requires kernel modules not available on Windows; using iptables.
+  kubeProxyMode: "iptables"
