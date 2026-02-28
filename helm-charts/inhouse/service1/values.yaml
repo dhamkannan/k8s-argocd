@@ -57,8 +57,8 @@ networkPolicy:
   #           app: allowed-app
 
 image:
-  repository: kaikoapp
-  tag: v2
+  repository: dhamkannan/k8s-test
+  tag: v1
   pullPolicy: IfNotPresent
 
 autoscaling:

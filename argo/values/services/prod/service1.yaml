@@ -1,6 +1,6 @@
 helm:
   service: service1
-  targetRevision: feature/v1
+  targetRevision: v1
 
 deployment:
   resources:	

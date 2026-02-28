@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: services
+  namespace: platform 
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/dhamkannan/k8s-argocd.git
+        revision: feature/v1
+        files:
+          - path: "argo/values/services/*/*.yaml"
+          - path: "argo/values/services/*/default.yaml"
+            exclude: true
+  template:
+    metadata:
+      name: '{{.path.basename }}-{{.path.filenameNormalized | trimSuffix ".yaml" }}'
+      namespace: '{{.path.basename }}'
+    spec:
+      project: platform
+      sources:
+        - ref: values
+          repoURL: https://github.com/dhamkannan/k8s-argocd.git
+          targetRevision: v1
+        - path: 'helm-charts/inhouse/{{ .helm.service }}'
+          repoURL: https://github.com/dhamkannan/k8s-argocd.git
+          targetRevision: '{{ .helm.targetRevision }}'
+          helm:
+            valueFiles:
+              - values.yaml
+              - '$values/argo/values/services/{{.path.basename }}/default.yaml'
+              - '$values/argo/values/services/{{.path.basename }}/{{.path.filename}}'
+      destination:
+        namespace: '{{.path.basename }}'
+        server: https://kubernetes.default.svc
+      # {{- if .helm.syncPolicy.enabled}}
+      # syncPolicy:
+      #   automated:
+      #     prune: {{ .helm.syncPolicy.prune }}
+      #     selfHeal: {{ .helm.syncPolicy.selfHeal }}
+      # {{- end }}
