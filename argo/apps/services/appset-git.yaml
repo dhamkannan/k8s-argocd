@@ -8,7 +8,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/dhamkannan/k8s-argocd.git
-        revision: feature/v1
+        revision: v1
         files:
           - path: "argo/values/services/*/*.yaml"
           - path: "argo/values/services/*/default.yaml"
