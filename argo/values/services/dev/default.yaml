@@ -1,0 +1,16 @@
+helm:
+  syncPolicy:
+    enabled: true
+    prune: true
+    selfHeal: true
+
+secrets:
+  GREETING: "Hello from DEV"
+
+env: dev
+
+image:
+  tag: dev
+
+deployment:
+  replicaCount: 1

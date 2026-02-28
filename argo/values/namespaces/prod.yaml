@@ -1,0 +1,6 @@
+namespace: prod
+resourceQuota:
+  enabled: false
+
+limitRange:
+  enabled: false

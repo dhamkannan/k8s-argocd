@@ -1,0 +1,12 @@
+helm:
+  service: service1
+  targetRevision: feature/v1
+
+deployment:
+  resources:	
+    limits:	
+      cpu: 2	
+      memory: 2Gi	
+    requests:	
+      cpu: 100m	
+      memory: 128Mi

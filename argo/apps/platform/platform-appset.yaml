@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform
+  namespace: platform
+spec:
+  generators:
+  # Environments
+  - list:
+      elements:
+      - namespace: dev
+      - namespace: prod
+      - namespace: platform
+  template:
+    metadata:
+      name: '{{namespace}}-platform'
+    spec:
+      project: platform
+      sources:
+      - ref: values # Path to Helm chart
+        repoURL: https://github.com/dhamkannan/k8s-argocd.git
+        targetRevision: feature/v1
+      - path: helm-charts/inhouse/platform-core  # Path to Helm chart
+        repoURL: https://github.com/dhamkannan/k8s-argocd.git
+        targetRevision: feature/v1
+        helm:
+          valueFiles:
+            - values.yaml
+            - $values/argo/values/namespaces/{{namespace}}.yaml
+      destination:
+        namespace: platform
+        server: https://kubernetes.default.svc
+    # {{- if .helm.syncPolicy.enabled }}
+    # syncPolicy:
+    #   automated:
+    #     prune: {{ .helm.syncPolicy.prune }}
+    #     selfHeal: {{ .helm.syncPolicy.selfHeal }}
+    # {{- end }}
+ 

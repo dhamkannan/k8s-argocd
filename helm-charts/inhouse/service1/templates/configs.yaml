@@ -1,0 +1,16 @@
+{{- if .Values.configs -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ include "service-core.fullname" . }}-configs'
+  namespace: {{ include "service-core.namespace" . }}
+  labels:
+    {{- include "service-core.labels" . | nindent 4 }}
+    {{- if .Values.global.labels }}
+      {{- toYaml .Values.global.labels | nindent 4 }}
+    {{- end }}
+data:
+  {{- with .Values.configs -}}
+  {{ toYaml . | nindent 2 }}
+  {{- end -}}
+{{ end -}}

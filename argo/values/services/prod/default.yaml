@@ -1,0 +1,11 @@
+
+secrets:
+  GREETING: "Hello from PROD"
+  
+env: prod
+
+image:
+  tag: prod
+
+deployment:
+  replicaCount: 2

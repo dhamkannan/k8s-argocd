@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "service-core.fullname" . }}
+  namespace: {{ include "service-core.namespace" . }}
+  labels:
+    {{- include "service-core.labels" . | nindent 4 }}
+    {{- with .Values.global.labels }}
+      {{- toYaml .Values.global.labels | nindent 4 }}
+    {{- end }}
+spec:
+  ports:
+  {{- range $name, $configs := .Values.service.ports }}
+  - name: {{ $name}}
+    port: {{ $configs.port }}
+    protocol: TCP
+    targetPort: {{ $configs.containerPort }}
+  {{- end }}
+  selector:
+    {{- include "service-core.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.service.type }}

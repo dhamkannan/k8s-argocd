@@ -1,0 +1,17 @@
+{{- if .Values.podDisruptionBudget.create -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "service-core.fullname" . }}
+  namespace: {{ include "service-core.namespace" . }}
+  labels:
+    {{- include "service-core.labels" . | nindent 4 }}
+    {{- with .Values.global.labels }}
+      {{- toYaml .Values.global.labels | nindent 4 }}
+    {{- end }}
+spec:
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  selector:
+    matchLabels:
+      {{- include "service-core.selectorLabels" . | nindent 6 }}
+{{- end }}

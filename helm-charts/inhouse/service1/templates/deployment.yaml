@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "service-core.fullname" . }}
+  namespace: {{ include "service-core.namespace" . }}
+  labels:
+    {{- include "service-core.labels" . | nindent 4 }}
+    {{- with .Values.global.labels }}
+      {{- toYaml .Values.global.labels | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "service-core.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.deployment.strategy | nindent 4}}
+  template:
+    metadata:
+      labels:
+        {{- include "service-core.labels" . | nindent 8 }}
+        {{- with .Values.global.labels }}
+          {{- toYaml .Values.global.labels | nindent 8 }}
+        {{- end }}
+      name: {{ include "service-core.fullname" . }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccount: {{ include "service-core.name" . }}
+      {{- end }}
+      securityContext:
+        {{- with .Values.deployment.podSecurityContext }}
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+      containers:
+      - name: {{ include "service-core.fullname" . }}
+        image: {{ include "service-core.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          {{- with .Values.deployment.livenessProbe }}
+            {{- $rendered := tpl (toYaml . | trimSuffix "\n") $ | replace "'" "" }}
+            {{- $parsed := $rendered | fromYaml }}
+            {{- toYaml $parsed | nindent 10 }}
+          {{- end }}
+        readinessProbe:
+          {{- with .Values.deployment.readinessProbe }}
+            {{- $rendered := tpl (toYaml . | trimSuffix "\n") $ | replace "'" "" }}
+            {{- $parsed := $rendered | fromYaml }}
+            {{- toYaml $parsed | nindent 10 }}
+          {{- end }}
+        startupProbe:
+          {{- with .Values.deployment.startupProbe }}
+            {{- $rendered := tpl (toYaml . | trimSuffix "\n") $ | replace "'" "" }}
+            {{- $parsed := $rendered | fromYaml }}
+            {{- toYaml $parsed | nindent 10 }}
+          {{- end }}
+        ports:
+        {{- range $name, $configs := .Values.service.ports }}
+        - containerPort: {{ $configs.containerPort }}
+          protocol: TCP
+        {{- end }}
+        resources:
+          {{- toYaml .Values.deployment.resources | nindent 10 }}
+        volumeMounts:
+        {{- with .Values.deployment.volumeMounts }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        env:
+          - name: READINESS_DELAY_SEC
+            valueFrom:
+              configMapKeyRef:
+                name: '{{ include "service-core.fullname" . }}-configs'
+                key: READINESS_DELAY_SEC
+                optional: true
+          - name: FAIL_RATE
+            valueFrom:
+              configMapKeyRef:
+                name: '{{ include "service-core.fullname" . }}-configs'
+                key: FAIL_RATE
+                optional: true
+          - name: GREETING
+            valueFrom:
+              secretKeyRef:
+                name: '{{ include "service-core.fullname" . }}-secrets'
+                key: GREETING
+                optional: true
+          - name: ENVIRONMENT
+            value: {{ .Values.env }}
+        {{- with .Values.deployment.env }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.envFrom  }}
+        envFrom:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- with .Values.deployment.containerSecurityContext }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+      {{- with .Values.deployment.extraContainers }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+      initContainers:
+      {{- with .Values.deployment.initContainers }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+      tolerations:
+      {{- if .Values.deployment.tolerations }}
+        {{- toYaml .Values.deployment.tolerations | nindent 6 }}
+      {{- end }}
+      volumes:
+      {{- with .Values.deployment.volumes }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+      affinity:    
+        nodeAffinity:
+          {{- if .Values.deployment.nodeAffinity.enabled }}
+          #preferredDuringSchedulingIgnoredDuringExecution:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "node-group"
+                operator: In
+                values: 
+                {{- with .Values.deployment.nodeAffinity.nodeGroups }}
+                  {{- toYaml . | nindent 16 }}
+                {{- end }}
+          {{- end }}

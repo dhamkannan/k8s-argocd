@@ -1,0 +1,25 @@
+namespace: dev
+
+resourceQuota:
+  hard:
+    requests.cpu: "2"
+    requests.memory: "4Gi"
+    limits.cpu: "4"
+    limits.memory: "8Gi"
+    pods: "10"
+
+limitRange:
+  limits:
+    - type: Container
+      default:
+        cpu: "250m"
+        memory: "256Mi"
+      defaultRequest:
+        cpu: "10m"
+        memory: "64Mi"
+      max:
+        cpu: "1"
+        memory: "1Gi"
+      min:
+        cpu: "10m"
+        memory: "32Mi"
